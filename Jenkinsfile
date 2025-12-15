@@ -35,7 +35,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s/app-deploy.yaml'
+                sh 'kubectl apply -f HealthInsurance/app-deploy.yaml'
             }
         }
     }
