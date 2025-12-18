@@ -11,6 +11,7 @@ pipeline {
         stage('Show Branch') {
             steps {
                 echo "Building branch: ${BRANCH}"
+                sh 'ls'
             }
         }
 
@@ -21,7 +22,8 @@ pipeline {
             steps {
                 echo "Backend build started"
                 sh '''
-                  cd BackEnd/HealthInsurance
+                  ls
+                  cd HealthInsurance
                   mvn clean package -DskipTests
                   docker build -t $DOCKER_USER/insurance-backend:latest .
                   docker push $DOCKER_USER/insurance-backend:latest
@@ -36,7 +38,7 @@ pipeline {
             steps {
                 echo "Frontend build started"
                 sh '''
-                  cd FrontEnd
+                  ls
                   docker build -t $DOCKER_USER/insurance-frontend:latest .
                   docker push $DOCKER_USER/insurance-frontend:latest
                 '''
@@ -44,9 +46,13 @@ pipeline {
         }
 
         stage('Deploy Containers') {
+            when {
+                expression { BRANCH == 'BackEnd' }
+            }
             steps {
-                echo "Deploying application"
+                echo "Deploying application using Docker"
                 sh '''
+                  docker compose down || true
                   docker compose up -d
                 '''
             }
