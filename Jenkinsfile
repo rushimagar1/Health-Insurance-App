@@ -8,10 +8,17 @@ pipeline {
 
     stages {
 
-        stage('Show Branch') {
+        stage('Docker Login') {
             steps {
-                echo "Building branch: ${BRANCH}"
-                sh 'ls'
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USERNAME',
+                    passwordVariable: 'DOCKER_PASSWORD'
+                )]) {
+                    sh '''
+                      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                    '''
+                }
             }
         }
 
@@ -20,7 +27,6 @@ pipeline {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
-                echo "Backend build started"
                 sh '''
                   cd HealthInsurance
                   docker build -t $DOCKER_USER/insurance-backend:latest .
@@ -34,7 +40,6 @@ pipeline {
                 expression { BRANCH == 'FrontendNew' }
             }
             steps {
-                echo "Frontend build started"
                 sh '''
                   docker build -t $DOCKER_USER/insurance-frontend:latest .
                   docker push $DOCKER_USER/insurance-frontend:latest
@@ -47,7 +52,6 @@ pipeline {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
-                echo "Deploying application"
                 sh '''
                   docker compose down || true
                   docker compose up -d
