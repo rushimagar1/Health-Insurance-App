@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        BRANCH = "${env.GIT_BRANCH}".replace("origin/", "")
         DOCKER_USER = "rushimagar1"
+        BRANCH = "${env.BRANCH_NAME ?: env.GIT_BRANCH}".replace("origin/", "")
     }
 
     stages {
@@ -22,9 +22,7 @@ pipeline {
             steps {
                 echo "Backend build started"
                 sh '''
-                  ls
                   cd HealthInsurance
-                  mvn clean package -DskipTests
                   docker build -t $DOCKER_USER/insurance-backend:latest .
                   docker push $DOCKER_USER/insurance-backend:latest
                 '''
@@ -38,7 +36,6 @@ pipeline {
             steps {
                 echo "Frontend build started"
                 sh '''
-                  ls
                   docker build -t $DOCKER_USER/insurance-frontend:latest .
                   docker push $DOCKER_USER/insurance-frontend:latest
                 '''
@@ -50,7 +47,7 @@ pipeline {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
-                echo "Deploying application using Docker"
+                echo "Deploying application using Docker Compose"
                 sh '''
                   docker compose down || true
                   docker compose up -d
