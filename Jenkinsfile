@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKER_USER = "rushimagar1"
-        BRANCH = "${env.BRANCH_NAME ?: env.GIT_BRANCH}".replace("origin/", "")
+        BRANCH = "${env.GIT_BRANCH}".replace("origin/", "")
     }
 
     stages {
@@ -47,7 +47,7 @@ pipeline {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
-                echo "Deploying application using Docker Compose"
+                echo "Deploying application"
                 sh '''
                   docker compose down || true
                   docker compose up -d
