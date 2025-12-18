@@ -1,41 +1,54 @@
 pipeline {
     agent any
 
+    environment {
+        BRANCH = "${env.GIT_BRANCH}".replace("origin/", "")
+        DOCKER_USER = "rushimagar1"
+    }
+
     stages {
 
-        stage('Checkout') {
+        stage('Show Branch') {
             steps {
-                checkout scm
+                echo "Building branch: ${BRANCH}"
             }
         }
 
         stage('Build Backend') {
             when {
-                branch 'BackEnd'
+                expression { BRANCH == 'BackEnd' }
             }
             steps {
-                dir('BackEnd/HealthInsurance') {
-                    sh 'docker build -t rushimagar1/insurance-backend:latest .'
-                    sh 'docker push rushimagar1/insurance-backend:latest'
-                }
+                echo "Backend build started"
+                sh '''
+                  cd BackEnd/HealthInsurance
+                  mvn clean package -DskipTests
+                  docker build -t $DOCKER_USER/insurance-backend:latest .
+                  docker push $DOCKER_USER/insurance-backend:latest
+                '''
             }
         }
 
         stage('Build Frontend') {
             when {
-                branch 'FrontendNew'
+                expression { BRANCH == 'FrontendNew' }
             }
             steps {
-                dir('FrontEnd') {
-                    sh 'docker build -t rushimagar1/insurance-frontend:latest .'
-                    sh 'docker push rushimagar1/insurance-frontend:latest'
-                }
+                echo "Frontend build started"
+                sh '''
+                  cd FrontEnd
+                  docker build -t $DOCKER_USER/insurance-frontend:latest .
+                  docker push $DOCKER_USER/insurance-frontend:latest
+                '''
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy Containers') {
             steps {
-                sh 'kubectl apply -f HealthInsurance/app-deploy.yaml'
+                echo "Deploying application"
+                sh '''
+                  docker compose up -d
+                '''
             }
         }
     }
