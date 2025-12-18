@@ -3,10 +3,16 @@ pipeline {
 
     environment {
         DOCKER_USER = "rushimagar1"
-        BRANCH = "${env.GIT_BRANCH}".replace("origin/", "")
+        BRANCH = "${env.BRANCH_NAME}"
     }
 
     stages {
+
+        stage('Show Branch') {
+            steps {
+                echo "Building branch: ${BRANCH}"
+            }
+        }
 
         stage('Docker Login') {
             steps {
@@ -22,7 +28,7 @@ pipeline {
 
         stage('Build Backend Image') {
             when {
-                expression { BRANCH == 'BackEnd' }
+                branch 'BackEnd'
             }
             steps {
                 sh '''
@@ -34,7 +40,7 @@ pipeline {
 
         stage('Build Frontend Image') {
             when {
-                expression { BRANCH == 'FrontendNew' }
+                branch 'FrontendNew'
             }
             steps {
                 sh '''
@@ -45,13 +51,10 @@ pipeline {
         }
 
         stage('Deploy with Docker Compose') {
-            when {
-                expression { BRANCH == 'BackEnd' }
-            }
             steps {
                 sh '''
                   docker compose down || true
-                  docker compose up -d --build
+                  docker compose up -d
                 '''
             }
         }
