@@ -13,9 +13,7 @@ services:
       - "3306:3306"
 
   backend:
-    build:
-      context: ./HealthInsurance
-      dockerfile: Dockerfile
+    image: rushimagar1/insurance-backend:latest   # ✅ USE IMAGE
     container_name: insurance-backend
     restart: always
     depends_on:
@@ -28,17 +26,15 @@ services:
       - "8089:8089"
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: rushimagar1/insurance-frontend:latest  # ✅ USE IMAGE
     container_name: insurance-frontend
     restart: always
     depends_on:
       - backend
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /home/ubuntu/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
-      - "3000:80"
+      - "30007:80"
 
 volumes:
   db_data:
