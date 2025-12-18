@@ -15,27 +15,24 @@ pipeline {
                     usernameVariable: 'DOCKER_USERNAME',
                     passwordVariable: 'DOCKER_PASSWORD'
                 )]) {
-                    sh '''
-                      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-                    '''
+                    sh 'echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin'
                 }
             }
         }
 
-        stage('Build Backend') {
+        stage('Build Backend Image') {
             when {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
                 sh '''
-                  cd HealthInsurance
-                  docker build -t $DOCKER_USER/insurance-backend:latest .
+                  docker build -t $DOCKER_USER/insurance-backend:latest ./HealthInsurance
                   docker push $DOCKER_USER/insurance-backend:latest
                 '''
             }
         }
 
-        stage('Build Frontend') {
+        stage('Build Frontend Image') {
             when {
                 expression { BRANCH == 'FrontendNew' }
             }
@@ -47,14 +44,14 @@ pipeline {
             }
         }
 
-        stage('Deploy Containers') {
+        stage('Deploy with Docker Compose') {
             when {
                 expression { BRANCH == 'BackEnd' }
             }
             steps {
                 sh '''
                   docker compose down || true
-                  docker compose up -d
+                  docker compose up -d --build
                 '''
             }
         }
